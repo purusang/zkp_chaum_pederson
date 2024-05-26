@@ -2,8 +2,8 @@ use num_bigint::{BigUint, RandBigInt};
 use rand::Rng;
 
 pub struct ZKP {
-    pub p: BigUint,
-    pub q: BigUint,
+    pub p: BigUint, // G = (Z_p, *) => a^d = a*a*...a (d times) mod p
+    pub q: BigUint, // group order
     pub alpha: BigUint,
     pub beta: BigUint,
 }
