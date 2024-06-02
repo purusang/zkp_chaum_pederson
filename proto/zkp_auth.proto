@@ -24,7 +24,7 @@ message AuthenticationChallengeRequest {
     bytes r2 = 3;
 }
 message AuthenticationChallengeResponse {
-    bytes auth_id = 1;
+    string auth_id = 1;
     bytes c = 2;
 }
 
