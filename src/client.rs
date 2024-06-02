@@ -5,7 +5,7 @@ pub mod zkp_auth {
 }
 use zkp_auth::{
     auth_client::AuthClient, AuthenticationAnswerRequest, AuthenticationChallengeRequest,
-    AuthenticationChallengeResponse, RegisterRequest,
+    RegisterRequest,
 };
 use zkp_chaum_pederson::ZKP;
 #[tokio::main]
