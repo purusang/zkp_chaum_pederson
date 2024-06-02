@@ -73,12 +73,19 @@ impl Auth for AuthImpl {
             let (_, _, _, q) = ZKP::get_constants();
 
             let c = ZKP::generate_random_number_below(&q);
-            let auth_id = "sdfsdf".to_string();
+            let auth_id = ZKP::generate_random_string(12);
 
             let mut auth_id_to_user = &mut self.auth_id_to_user.lock().unwrap();
             auth_id_to_user.insert(auth_id.clone(), user_name);
+
+            if let Some(user_name) = auth_id_to_user.get(&auth_id) {
+                println!("User name: {}, Auth ID: {}", user_name, &auth_id);
+            } else {
+                println!("Auth ID not found");
+            }
+
             Ok(Response::new(AuthenticationChallengeResponse {
-                auth_id: auth_id.into_bytes().to_vec(),
+                auth_id: auth_id.into(),
                 c: c.to_bytes_be(),
             }))
         } else {
@@ -92,7 +99,57 @@ impl Auth for AuthImpl {
         &self,
         request: Request<AuthenticationAnswerRequest>,
     ) -> Result<Response<AuthenticationAnswerResponse>, Status> {
-        todo!()
+        println!("Verifying Authentication: {:?}", request);
+
+        let request = request.into_inner();
+        let auth_id = request.auth_id;
+
+        let user_info_hashmap = &mut self.user_info.lock().unwrap();
+        let auth_id_to_user = self.auth_id_to_user.lock().unwrap();
+
+        if let Some(user_name) = auth_id_to_user.get(&auth_id) {
+            if let Some(user_info) = user_info_hashmap.get_mut(user_name) {
+                user_info.session_id = ZKP::generate_random_string(12);
+                user_info.s = BigUint::from_bytes_be(&request.s);
+
+                let (a, b, p, q) = ZKP::get_constants();
+                let y1 = &user_info.y1;
+                let y2 = &user_info.y2;
+                let r1 = &user_info.r1;
+                let r2 = &user_info.r2;
+                let c = &user_info.c;
+                let s = &user_info.s;
+
+                let zkp = ZKP {
+                    p: p.clone(),
+                    q: q.clone(),
+                    alpha: a.clone(),
+                    beta: b.clone(),
+                };
+
+                let result = zkp.verify(r1, r2, y1, y2, c, s);
+                if result {
+                    Ok(Response::new(AuthenticationAnswerResponse {
+                        session_id: user_info.session_id.clone(),
+                    }))
+                } else {
+                    return Err(Status::new(
+                        Code::InvalidArgument,
+                        "Authentication failed".to_string(),
+                    ));
+                }
+            } else {
+                return Err(Status::new(
+                    Code::NotFound,
+                    format!("User {} not found", user_name),
+                ));
+            }
+        } else {
+            return Err(Status::new(
+                Code::NotFound,
+                format!("Auth ID {} not found", auth_id),
+            ));
+        }
     }
 }
 #[tokio::main]
