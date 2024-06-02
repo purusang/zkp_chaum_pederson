@@ -29,8 +29,8 @@ pub struct AuthenticationChallengeRequest {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AuthenticationChallengeResponse {
-    #[prost(bytes = "vec", tag = "1")]
-    pub auth_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "1")]
+    pub auth_id: ::prost::alloc::string::String,
     #[prost(bytes = "vec", tag = "2")]
     pub c: ::prost::alloc::vec::Vec<u8>,
 }

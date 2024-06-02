@@ -73,16 +73,11 @@ impl Auth for AuthImpl {
             let (_, _, _, q) = ZKP::get_constants();
 
             let c = ZKP::generate_random_number_below(&q);
+            user_info.c = c.clone();
             let auth_id = ZKP::generate_random_string(12);
 
             let mut auth_id_to_user = &mut self.auth_id_to_user.lock().unwrap();
             auth_id_to_user.insert(auth_id.clone(), user_name);
-
-            if let Some(user_name) = auth_id_to_user.get(&auth_id) {
-                println!("User name: {}, Auth ID: {}", user_name, &auth_id);
-            } else {
-                println!("Auth ID not found");
-            }
 
             Ok(Response::new(AuthenticationChallengeResponse {
                 auth_id: auth_id.into(),
